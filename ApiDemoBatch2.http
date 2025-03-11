@@ -1,0 +1,6 @@
+@ApiDemoBatch2_HostAddress = http://localhost:5005
+
+GET {{ApiDemoBatch2_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
