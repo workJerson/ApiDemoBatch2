@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ApiDemoBatch2.Context;
+using ApiDemoBatch2.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiDemoBatch2.Controllers
 {
@@ -6,52 +9,33 @@ namespace ApiDemoBatch2.Controllers
     [Route("[controller]")]
     public class CarController : ControllerBase
     {
-        private static List<Car> cars = new List<Car>()
+        private readonly DatabaseContext databaseContext;
+        public CarController(DatabaseContext databaseContext)
         {
-            new Car()
-            {
-                Id = 1,
-                Brand = "Honda",
-                Model = "City"
-            },
-            new Car()
-            {
-                Id = 2,
-                Brand = "Toyota",
-                Model = "Rush"
-            },
-            new Car()
-            {
-                Id = 3,
-                Brand = "Honda",
-                Model = "Civic"
-            },
-        };
+            this.databaseContext = databaseContext;
+        }
 
         [HttpGet()]
         public async Task<List<Car>> GetAllCars()
         {
+            var cars = await databaseContext.Cars.ToListAsync();
+
             return cars;
         }
 
         [HttpGet("{id}")]
         public async Task<Car?> GetCarById([FromRoute] int id)
         {
-            //Car fetchedCar = cars.Where(x => x.Id == 5).First();
+            var car = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
 
-            //List<Car> linqCar = (from c in cars
-            //               where c.Id == 5
-            //               select c).ToList();
-
-            // SELECT * FROM Cars c WHERE c.Id = 5;
-
-            return cars.FirstOrDefault(x => x.Id == id);
+            return car;
         }
 
         [HttpPost()]
         public async Task<Car> CreateCar([FromBody] Car car)
         {
-            cars.Add(car);
+            databaseContext.Cars.Add(car);
+            await databaseContext.SaveChangesAsync();
 
             return car;
         }
@@ -60,7 +44,7 @@ namespace ApiDemoBatch2.Controllers
         public async Task<Car?> UpdateCar([FromRoute] int id, [FromBody] Car car)
         {
             // Validation to check if car exists
-            Car? carRecord = cars.FirstOrDefault(x => x.Id == id);
+            var carRecord = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
 
             if (carRecord == null)
             {
@@ -70,6 +54,8 @@ namespace ApiDemoBatch2.Controllers
             carRecord.Model = car.Model;
             carRecord.Brand = car.Brand;
 
+            await databaseContext.SaveChangesAsync();
+
             return carRecord;
         }
 
@@ -77,22 +63,18 @@ namespace ApiDemoBatch2.Controllers
         public async Task<bool> DeleteCar([FromRoute] int id)
         {
             // Validation to check if car exists
-            Car? carRecord = cars.FirstOrDefault(x => x.Id == id);
+            var carRecord = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
 
-            if(carRecord == null)
+            if (carRecord == null)
             {
                 return false;
             }
 
-            cars.Remove(carRecord);
+            databaseContext.Cars.Remove(carRecord);
+
+            await databaseContext.SaveChangesAsync();
 
             return true;
         }
-    }
-    public class Car
-    {
-        public int Id { get; set; }
-        public string Brand { get; set; }
-        public string Model { get; set; }
     }
 }
