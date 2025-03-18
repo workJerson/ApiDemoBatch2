@@ -52,7 +52,9 @@ namespace ApiDemoBatch2.Controllers
             }
 
             carRecord.Model = car.Model;
-            carRecord.Brand = car.Brand;
+            carRecord.Year = car.Year;
+            carRecord.Color = car.Color;
+            carRecord.CarBrandId = car.CarBrandId;
 
             await databaseContext.SaveChangesAsync();
 
