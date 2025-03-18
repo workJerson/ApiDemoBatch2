@@ -19,7 +19,7 @@ public partial class DatabaseContext : DbContext
 
     public virtual DbSet<Car> Cars { get; set; }
 
-    public virtual DbSet<CarColor> CarColors { get; set; }
+    public virtual DbSet<CarBrand> CarBrands { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,11 +30,19 @@ public partial class DatabaseContext : DbContext
         modelBuilder.Entity<Car>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.HasIndex(e => e.CarBrandId, "Cars_CarBrands_FK");
+
+            entity.HasOne(d => d.CarBrand).WithMany(p => p.Cars)
+                .HasForeignKey(d => d.CarBrandId)
+                .HasConstraintName("Cars_CarBrands_FK");
         });
 
-        modelBuilder.Entity<CarColor>(entity =>
+        modelBuilder.Entity<CarBrand>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);
