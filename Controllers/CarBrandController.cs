@@ -1,5 +1,6 @@
 ﻿using ApiDemoBatch2.Context;
 using ApiDemoBatch2.Entities;
+using ApiDemoBatch2.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +8,12 @@ namespace ApiDemoBatch2.Controllers
 {
     public class CarBrandController : ControllerBase
     {
+        private readonly ICarService carService;
         private readonly DatabaseContext databaseContext;
-        public CarBrandController(DatabaseContext databaseContext)
+        public CarBrandController(DatabaseContext databaseContext, ICarService carService)
         {
             this.databaseContext = databaseContext;
+            this.carService = carService;
         }
 
         [HttpGet()]
@@ -57,7 +60,7 @@ namespace ApiDemoBatch2.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> DeleteCar([FromRoute] int id)
+        public async Task<bool> DeleteCarBrand([FromRoute] int id)
         {
             // Validation to check if carBrand exists
             var carRecord = await databaseContext.CarBrands.FirstOrDefaultAsync(x => x.Id == id);

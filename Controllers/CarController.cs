@@ -1,5 +1,7 @@
 ﻿using ApiDemoBatch2.Context;
+using ApiDemoBatch2.Dtos;
 using ApiDemoBatch2.Entities;
+using ApiDemoBatch2.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,74 +11,61 @@ namespace ApiDemoBatch2.Controllers
     [Route("[controller]")]
     public class CarController : ControllerBase
     {
-        private readonly DatabaseContext databaseContext;
-        public CarController(DatabaseContext databaseContext)
+        private readonly ICarService carService;
+
+        public CarController(ICarService carService)
         {
-            this.databaseContext = databaseContext;
+            this.carService = carService;
         }
 
         [HttpGet()]
-        public async Task<List<Car>> GetAllCars()
+        public async Task<IActionResult> GetAllCars()
         {
-            var cars = await databaseContext.Cars.ToListAsync();
+            var cars = await carService.GetAllCars();
 
-            return cars;
+            return Ok(cars);
         }
 
         [HttpGet("{id}")]
-        public async Task<Car?> GetCarById([FromRoute] int id)
+        public async Task<IActionResult> GetCarById([FromRoute] int id)
         {
-            var car = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
+            var car = await carService.GetCarById(id);
+            if (car == null)
+                return NotFound();
 
-            return car;
+            return Ok(car);
         }
 
         [HttpPost()]
-        public async Task<Car> CreateCar([FromBody] Car car)
+        public async Task<IActionResult> CreateCar([FromBody] CreateCarModel car)
         {
-            databaseContext.Cars.Add(car);
-            await databaseContext.SaveChangesAsync();
+            var createdCard = await carService.CreateCar(car);
 
-            return car;
+            if (createdCard == null)
+                return BadRequest();
+
+            return Ok(createdCard);
         }
 
         [HttpPut("{id}")]
-        public async Task<Car?> UpdateCar([FromRoute] int id, [FromBody] Car car)
+        public async Task<IActionResult> UpdateCar([FromRoute] int id, [FromBody] UpdateCarModel car)
         {
-            // Validation to check if car exists
-            var carRecord = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
+            var updateCarResult = await carService.UpdateCar(id, car);
 
-            if (carRecord == null)
-            {
-                return null;
-            }
+            if (updateCarResult == null)
+                return BadRequest();
 
-            carRecord.Model = car.Model;
-            carRecord.Year = car.Year;
-            carRecord.Color = car.Color;
-            carRecord.CarBrandId = car.CarBrandId;
-
-            await databaseContext.SaveChangesAsync();
-
-            return carRecord;
+            return Ok(updateCarResult);
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> DeleteCar([FromRoute] int id)
+        public async Task<IActionResult> DeleteCar([FromRoute] int id)
         {
-            // Validation to check if car exists
-            var carRecord = await databaseContext.Cars.FirstOrDefaultAsync(x => x.Id == id);
+            var deleteResult = await carService.DeleteCar(id);
+            if (deleteResult == false)
+                return BadRequest();
 
-            if (carRecord == null)
-            {
-                return false;
-            }
-
-            databaseContext.Cars.Remove(carRecord);
-
-            await databaseContext.SaveChangesAsync();
-
-            return true;
+            return Ok(deleteResult);
         }
     }
 }
